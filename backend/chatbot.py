@@ -1,5 +1,5 @@
 import streamlit as st
-from backup.rag import answer_question
+from backend.rag import answer_question
 from backend.utils import (
     get_session_df,
     get_chat_history,
