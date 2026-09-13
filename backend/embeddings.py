@@ -3,11 +3,14 @@ from sentence_transformers import SentenceTransformer
 from backend import config
 
 _model = SentenceTransformer(config.EMBEDDING_MODEL_NAME)
-_client = chromadb.PersistentClient(path=str(config.CHROMA_DB_PATH))
+_client = chromadb.Client()
 _collection = _client.get_or_create_collection(config.CHROMA_COLLECTION_NAME)
 
 
 def embed_transactions(df) -> None:
+    existing_ids = _collection.get(include=[])["ids"]
+    if existing_ids:
+        _collection.delete(ids=existing_ids)
     # embeds each transaction description and stores it with light metadata
     documents = df["description"].tolist()
     embeddings = _model.encode(documents).tolist()
@@ -22,7 +25,7 @@ def embed_transactions(df) -> None:
         for _, row in df.iterrows()
     ]
     ids = [f"txn_{i}" for i in range(len(df))]
-
+    
     _collection.upsert(
         ids=ids,
         documents=documents,

@@ -1,19 +1,22 @@
 import streamlit as st
+import hashlib
 from backend.pdf_parser import extract_tables_native
 from backend.extractor import build_dataframe
 from backend.cleaner import clean_transactions
 from backend.categorizer import categorize_transactions
 from backend.embeddings import embed_transactions
-from backend.utils import check_file_size, set_session_df
+from backend.utils import check_file_size, set_session_df,clear_session
 from backend import config
 from frontend.components import render_loader, render_error, render_empty_state
 
 
 def handle_upload():
-    # main upload flow: validate, extract table, clean, categorize, embed
     uploaded_file = st.file_uploader("Upload bank statement (PDF)", type=["pdf"])
 
     if uploaded_file is None:
+        if st.session_state.get("processed_file_hash"):
+            clear_session()
+
         render_empty_state()
         return
 
@@ -21,10 +24,13 @@ def handle_upload():
         render_error(f"File too large. Max {config.MAX_UPLOAD_MB}MB allowed.")
         return
 
-    with render_loader():
-        uploaded_file.seek(0)
-        pdf_bytes = uploaded_file.read()
+    pdf_bytes = uploaded_file.getvalue()
+    file_hash = hashlib.sha256(pdf_bytes).hexdigest()
 
+    if st.session_state.get("processed_file_hash") == file_hash:
+        return
+
+    with render_loader():
         if not pdf_bytes.startswith(b"%PDF"):
             render_error("Uploaded file is not a valid PDF.")
             return
@@ -32,15 +38,17 @@ def handle_upload():
         try:
             rows = extract_tables_native(pdf_bytes)
             df = build_dataframe(rows)
-        except ValueError as e:
-            render_error(f"Could not read transactions from this PDF: {e}")
+            df = clean_transactions(df)
+            df = categorize_transactions(df)
+            embed_transactions(df)
+
+        except ValueError as error:
+            render_error(f"Could not read transactions from this PDF: {error}")
             return
 
-        df = clean_transactions(df)
-        df = categorize_transactions(df)
-        embed_transactions(df)
-
         set_session_df(df)
-    rows = extract_tables_native(pdf_bytes)
+        st.session_state["processed_file_hash"] = file_hash
+
+        st.session_state["chat_history"] = []
 
     st.success(f"Processed {len(df)} transactions.")

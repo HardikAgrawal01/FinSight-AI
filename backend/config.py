@@ -1,15 +1,17 @@
 import os
 from pathlib import Path
 
-MAX_UPLOAD_MB = 2
+MAX_UPLOAD_MB = 1
 MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-CHROMA_DB_PATH = BASE_DIR / "data" / "chroma_db"
+# CHROMA_DB_PATH = BASE_DIR / "data" / "chroma_db"
 CHROMA_COLLECTION_NAME = "transactions"
 
-GROQ_MODEL_NAME = "llama-3.3-70b-versatile"
+GROQ_MODEL_NAME = "openai/gpt-oss-120b"
 # GEMINI_MODEL_NAME = "gemini-3.6-flash"
+# GEMINI_MODEL_NAME = "gemini-3.6-flash"
+# ENV_GEMINI_API_KEY = "GEMINI_API_KEY"
 
 LLM_TEMPERATURE = 0.2
 LLM_MAX_RETRIES = 2

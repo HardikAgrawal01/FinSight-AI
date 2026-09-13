@@ -34,3 +34,7 @@ def get_chat_history() -> list:
 
 def append_chat_message(role: str, content: str) -> None:
     get_chat_history().append({"role": role, "content": content})
+
+def clear_session() -> None:
+    for key in ["transactions_df", "chat_history", "processed_file_hash"]:
+        st.session_state.pop(key, None)
