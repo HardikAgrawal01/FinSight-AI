@@ -102,7 +102,7 @@ FINSIGHT-AI/
 ### Setup
 
 ```bash
-git clone https://github.com/<your-username>/FINSIGHT-AI.git
+git clone https://github.com/<HardikA>/FINSIGHT-AI.git
 cd FINSIGHT-AI
 
 uv sync
